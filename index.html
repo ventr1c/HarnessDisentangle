@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness Updating Is Not Harness Benefit</title>
+<meta name="description" content="We split harness self-evolution in LLM agents into two capabilities: harness-updating, which is flat in base capability, and harness-benefit, which is non-monotonic. EMNLP 2026.">
+
+<meta property="og:title" content="Harness Updating Is Not Harness Benefit: Disentangling Evolution Capabilities in Self-Evolving LLM Agents">
+<meta property="og:description" content="Across seven LLMs and three agentic benchmarks, the model that writes harness updates matters little; the model that uses them matters a lot. EMNLP 2026.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="static/teaser_findings.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="static/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <span class="mark">Harness Updating &ne; Harness Benefit</span>
+    <span class="links">
+      <a href="#abstract">Abstract</a>
+      <a href="#setup">Setup</a>
+      <a href="#updating">Harness-updating</a>
+      <a href="#benefit">Harness-benefit</a>
+      <a href="#guidance">Guidance</a>
+      <a href="#bibtex">BibTeX</a>
+    </span>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <span class="badge">
+      <span class="dot"></span>
+      <b>EMNLP 2026</b>
+    </span>
+
+    <h1 class="title">Harness <span class="c-up">Updating</span> Is Not Harness <span class="c-ben">Benefit</span></h1>
+    <p class="subtitle">Disentangling Evolution Capabilities in Self-Evolving LLM Agents</p>
+
+    <p class="authors">
+      <span class="au">Minhua Lin<sup>1*</sup>,</span>
+      <span class="au">Juncheng Wu<sup>2*</sup>,</span>
+      <span class="au">Zijun Wang<sup>2</sup>,</span>
+      <span class="au">Zhan Shi<sup>3</sup>,</span>
+      <span class="au">Yisi Sang<sup>3</sup>,</span>
+      <span class="au">Bing He<sup>3</sup>,</span>
+      <span class="au">Zewen Liu<sup>4</sup>,</span>
+      <span class="au">Tianxin Wei<sup>5</sup>,</span>
+      <span class="au">Zongyu Wu<sup>1</sup>,</span>
+      <span class="au">Zhiwei Zhang<sup>1</sup>,</span>
+      <span class="au">Dakuo Wang<sup>6</sup>,</span>
+      <span class="au">Xiang Zhang<sup>1</sup>,</span>
+      <span class="au">Benoit Dumoulin<sup>3</sup>,</span>
+      <span class="au">Cihang Xie<sup>2</sup>,</span>
+      <span class="au">Yuyin Zhou<sup>2</sup>,</span>
+      <span class="au">Suhang Wang<sup>1</sup>,</span>
+      <span class="au">Hanqing Lu<sup>3</sup></span>
+    </p>
+    <p class="affil">
+      <span class="au"><sup>1</sup>The Pennsylvania State University</span>
+      <span class="au"><sup>2</sup>UC Santa Cruz</span>
+      <span class="au"><sup>3</sup>Amazon</span>
+      <span class="au"><sup>4</sup>Emory University</span>
+      <span class="au"><sup>5</sup>UIUC</span>
+      <span class="au"><sup>6</sup>Northeastern University</span>
+    </p>
+    <p class="note">
+      <sup>*</sup>Equal contribution<span class="sep-dot">&middot;</span>Correspondence: <a href="mailto:luhanqin@amazon.com">luhanqin@amazon.com</a>
+    </p>
+
+    <div class="buttons">
+      <a class="btn btn-arxiv" href="https://arxiv.org/abs/2605.30621">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h8l6 6v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M13 3v6h6"/><path d="m8.5 12.5 4 5"/><path d="m12.5 12.5-4 5"/><path d="M15 17.5h.01"/></svg>
+        arXiv
+      </a>
+      <!-- Paper: the EMNLP 2026 page on the ACL Anthology. -->
+      <a class="btn btn-pdf" href="https://aclanthology.org/2026.emnlp-main.2326/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20h15"/></svg>
+        Paper
+      </a>
+      <a class="btn btn-github" href="https://github.com/A-EVO-Lab/a-evolve/tree/release/harness-evolution">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.9 18.3 5.2 18.3 5.2c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+        Code
+      </a>
+      <a class="btn btn-cite" href="#bibtex">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7H6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v1a3 3 0 0 1-3 3"/><path d="M19 7h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v1a3 3 0 0 1-3 3"/></svg>
+        BibTeX
+      </a>
+    </div>
+  </div>
+</header>
+
+<section class="teaser">
+  <div class="wrap">
+    <figure class="reveal">
+      <span class="scrollhint" aria-hidden="true">Swipe to see the full figure &rarr;</span>
+      <div class="figscroll"><a class="zoom" href="static/teaser_findings.png"><img src="static/teaser_findings.png" width="2400" height="758" alt="Two scatter plots against base capability. Left: harness-updating gain is roughly flat around a mean of 3.75 points for all evolver models. Right: harness-benefit gain rises from Qwen3-32B to a peak at GPT-OSS-120B and Qwen3-235B, then falls for Sonnet 4.6 and Opus 4.6, with notes on two weak-model failure modes and a performance ceiling for strong models."></a></div>
+      <figcaption>
+        <span class="fignum">Fig. 1</span><b>Overview of our findings.</b>
+        <b>(A)</b> <em>Harness-updating is flat in base capability</em>: models across capability tiers produce harness updates that yield similar gains.
+        <b>(B)</b> <em>Harness-benefit is non-monotonic in base capability</em>: mid-tier models benefit most, while weak-tier models benefit little because they fail to activate the harness or to adhere to it.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="statband">
+  <div class="wrap">
+    <div class="stats reveal">
+      <div class="stat up">
+        <span class="t">Evolver spread</span>
+        <span class="k">&le; 3.1 pp</span>
+        <span class="lbl">between the <b>best and worst of seven evolvers</b> on any benchmark.</span>
+      </div>
+      <div class="stat up">
+        <span class="t">Smallest evolver</span>
+        <span class="k k-text">9B &asymp; Opus&nbsp;4.6</span>
+        <span class="lbl"><b>Qwen3.5-9B</b> tops SkillsBench at +3.8 pp, ahead of Opus 4.6 at +2.3 pp.</span>
+      </div>
+      <div class="stat">
+        <span class="t">Mid-tier peak</span>
+        <span class="k">+19.3 pp</span>
+        <span class="lbl">harness-benefit for <b>Qwen3-235B</b> on SWE-bench Verified, vs. +4.4 for Qwen3-32B and +2.6 for Opus 4.6.</span>
+      </div>
+      <div class="stat">
+        <span class="t">Weak-tier skill loading</span>
+        <span class="k k-text">25% vs. &asymp;96%</span>
+        <span class="lbl">of trajectories load a skill: <b>Qwen3-32B vs. strong-tier models</b> on SkillsBench.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="abstract">
+  <div class="wrap">
+    <div class="h2row"><span class="no">01</span><h2>Abstract</h2></div>
+    <div class="abstract reveal">
+      <p>LLM agents are increasingly deployed as systems built around editable external harnesses, including prompts, skills, memories and tools, that shape task execution without changing model parameters. Harness self-evolution adapts such agents by updating these harnesses from execution evidence. Yet it remains unclear whether a model's <em>base capability</em> in task-solving predicts its capabilities in harness self-evolution: which models produce useful harness updates, and which actually benefit from them?</p>
+
+      <p>We analyze two harness self-evolution capabilities: (i) <b>harness-updating</b>, the capability to produce useful persistent harness updates from execution evidence; (ii) <b>harness-benefit</b>, the capability to benefit from updated harnesses during task solving. Our analysis reveals two findings. First, <em>harness-updating is flat in base capability</em>: models from different capability tiers produce harness updates that lead to surprisingly similar gains; even Qwen3.5-9B's updates yield gains comparable to those of Claude Opus&nbsp;4.6. Second, <em>harness-benefit is non-monotonic in base capability</em>: weak-tier models benefit little from updated harnesses, mid-tier models benefit most, and strong-tier models benefit less than mid-tier.</p>
+
+      <p>We trace low gains at the weak tier to two failure modes: weak-tier models may fail to activate relevant harness artifacts, or activate them but fail to follow them faithfully. These findings suggest investing capability budget in the task-solving agent rather than the evolver, and targeting harness invocation and long-horizon instruction following in agent training.</p>
+    </div>
+  </div>
+</section>
+
+<section id="setup" class="alt">
+  <div class="wrap">
+    <div class="h2row"><span class="no">02</span><h2>Two capabilities, measured apart</h2></div>
+    <p class="lead reveal">
+      In harness self-evolution the model weights stay frozen. What changes is the harness around them: the prompts, skills and memories the agent works with. An <b>evolver</b> model reads the agent's execution evidence and rewrites that harness between batches of tasks.
+    </p>
+
+    <div class="split reveal">
+      <figure>
+        <div class="figpad"><a class="zoom" href="static/overview_harness_self_evolution.png"><img src="static/overview_harness_self_evolution.png" width="1600" height="911" alt="Diagram: a frozen LLM is connected to a harness of memory, tools, prompts and skills. Its experiences are diagnosed by an evolver model, which writes updates back into the harness."></a></div>
+        <figcaption><span class="fignum">Fig. 2</span><b>Harness self-evolution.</b> The LLM is frozen; an evolver model turns its experiences into updates to the harness.</figcaption>
+      </figure>
+      <div>
+        <p>Starting from an initial harness <span class="math">H<sub>0</sub></span>, the loop runs for <span class="math">T</span> steps. At step <span class="math">t</span> the agent <span class="math">(f, H<sub>t&minus;1</sub>)</span> attempts a batch of tasks, and the evolver <span class="math">e</span> turns the trajectories and outputs into an update that produces <span class="math">H<sub>t</sub></span>.</p>
+        <p>An end-to-end score reports one number for the whole loop. It cannot say whether a gain came from the evolver writing good updates or from the agent making good use of them. We separate the two by crossing agents with evolvers. For a pairing <span class="math">(f, e)</span>, the evolution gain is</p>
+        <span class="eqline"><span class="math">&Delta;(f, e) = J(f, H<sub>T</sub><sup>(f, e)</sup>) &minus; M<sub>base</sub>(f)</span></span>
+        <p>where <span class="math">M<sub>base</sub>(f) = J(f, H<sub>0</sub>)</span> is the model's <b>base capability</b>: its pass rate with the initial harness.</p>
+      </div>
+    </div>
+
+    <div class="two-col reveal">
+      <div class="card up">
+        <span class="tag">The model as evolver</span>
+        <h4>Harness-updating</h4>
+        <span class="eqline"><span class="math">&Delta;<sub>update</sub>(e) = mean<sub>f &isin; &#x2131;*</sub> &Delta;(f, e)</span></span>
+        <p>How much the updates an evolver writes help a fixed set of anchor agents <span class="math">&#x2131;*</span>: Opus&nbsp;4.6, Sonnet&nbsp;4.6 and Qwen3-235B.</p>
+      </div>
+      <div class="card ben">
+        <span class="tag">The model as agent</span>
+        <h4>Harness-benefit</h4>
+        <span class="eqline"><span class="math">&Delta;<sub>benefit</sub>(f) = max<sub>e &isin; &#x2130;*</sub> &Delta;(f, e)</span></span>
+        <p>The largest gain an agent gets from harnesses written by a fixed set of anchor evolvers <span class="math">&#x2130;*</span>, the same three models.</p>
+      </div>
+    </div>
+
+    <h3 class="reveal">Benchmarks and models</h3>
+    <div class="three-col reveal">
+      <div class="card bench">
+        <h4>SWE-bench Verified</h4>
+        <p>500 real GitHub issues from 12 Python repositories. A patch passes if it satisfies the hidden tests.</p>
+        <span class="meta">evolves: skills</span>
+      </div>
+      <div class="card bench">
+        <h4>MCP-Atlas</h4>
+        <p>500 tool-use tasks, each needing 3&ndash;6 calls across 36 real MCP servers that expose 220 tools.</p>
+        <span class="meta">evolves: skills, prompts, memories</span>
+      </div>
+      <div class="card bench">
+        <h4>SkillsBench</h4>
+        <p>86 tasks in 11 domains with deterministic verifiers. The baseline starts with an empty skill set.</p>
+        <span class="meta">evolves: skills</span>
+      </div>
+    </div>
+    <p class="reveal" style="margin-top:26px">
+      Seven LLMs fill the two roles. Claude Opus&nbsp;4.6, Sonnet&nbsp;4.6 and Haiku&nbsp;4.5, Qwen3-235B-A22B, Qwen3-32B and GPT-OSS-120B serve as agents and evolvers; Qwen3.5-9B, the smallest model in the study, joins as an extra evolver. All pairs on a benchmark share the initial harness, the task stream, the prompt templates, the evolution budget and the turn limit, so only the backbone changes. Evaluation is in situ: each task is scored under the harness in place when it is attempted, before its own evidence can shape the next update.
+    </p>
+  </div>
+</section>
+
+<section id="updating">
+  <div class="wrap">
+    <div class="h2row"><span class="no up">03</span><h2>Finding 1: harness-updating is flat in base capability</h2></div>
+    <p class="lead reveal">
+      Swap the evolver from Claude Opus&nbsp;4.6 down to a 9B open model and the agents gain about the same. No evolver comes out ahead on every benchmark.
+    </p>
+
+    <figure class="reveal">
+      <span class="scrollhint" aria-hidden="true">Swipe to see the full figure &rarr;</span>
+      <div class="figscroll"><a class="zoom" href="static/evolver_delta_update.png"><img src="static/evolver_delta_update.png" width="2400" height="736" alt="Horizontal bar charts of harness-updating gain for seven evolvers on SWE, MCP and SkillsBench. SWE gains range from 5.9 to 8.2 points, MCP from 0.6 to 3.6, SkillsBench from 0.7 to 3.8, with Qwen3.5-9B highest on SkillsBench."></a></div>
+      <figcaption>
+        <span class="fignum">Fig. 3</span><b>Harness-updating capability <span class="math">&Delta;<sub>update</sub></span> of each evolver</b>, averaged over the three anchor agents. Evolvers are grouped by family (Claude, Qwen, GPT-OSS). The best and worst evolver in each panel are in bold, and they change from benchmark to benchmark.
+      </figcaption>
+    </figure>
+
+    <div class="two-col reveal">
+      <div class="card up">
+        <span class="tag">Narrow spread</span>
+        <h4>At most 3.1 pp between evolvers</h4>
+        <p>On every benchmark, the best and worst of the seven evolvers differ by at most 3.1 pp, and the ranking reshuffles. Qwen3-235B leads on SWE (8.2 pp) and ranks last on MCP (0.6 pp).</p>
+      </div>
+      <div class="card up">
+        <span class="tag">Scale is not predictive</span>
+        <h4>The 9B evolver wins on SkillsBench</h4>
+        <p>The smallest evolver, Qwen3.5-9B, posts the highest gain on SkillsBench (3.8 pp), ahead of Opus&nbsp;4.6 (2.3 pp) and Qwen3-235B (1.5 pp).</p>
+      </div>
+    </div>
+
+    <h3 class="reveal">Case study: a 9B evolver writes the same recipe as Opus&nbsp;4.6</h3>
+    <p class="reveal">
+      On the SkillsBench task <code>flink-query</code>, an Opus&nbsp;4.6 agent with no evolved skill leaves out the FINISH-event filter and scores 0.67. Given the skill written by either Qwen3.5-9B or Opus&nbsp;4.6, the same agent solves the task. The two skills prescribe the same sequence of steps and differ only in implementation details and length.
+    </p>
+    <figure class="reveal">
+      <span class="scrollhint" aria-hidden="true">Swipe to see the full figure &rarr;</span>
+      <div class="figscroll"><a class="zoom" href="static/evolver_case_flink.png"><img src="static/evolver_case_flink.png" width="2400" height="1097" alt="Three panels for the flink-query task with an Opus 4.6 agent. No evolver: the agent writes its own recipe, misses the FINISH filter and fails with score 0.67. Qwen3.5-9B evolver and Opus 4.6 evolver: each injects a five-step flink-query skill, the agent follows it from turn 0 and passes with score 1.0. The two skills are marked procedurally isomorphic."></a></div>
+      <figcaption>
+        <span class="fignum">Fig. 4</span><b>Harness updates by Qwen3.5-9B and Claude Opus&nbsp;4.6</b> on <code>flink-query</code>, with an Opus&nbsp;4.6 agent. Left: no evolved skill (score 0.67). Center: skill evolved by Qwen3.5-9B (score 1.0). Right: skill evolved by Opus&nbsp;4.6 (score 1.0). Both skills encode procedurally similar guidance.
+      </figcaption>
+    </figure>
+
+    <h3 class="reveal">The agent, not the evolver, sets the post-evolution score</h3>
+    <div class="split narrow-fig reveal">
+      <figure>
+        <div class="figpad"><a class="zoom" href="static/agent_dominance_mcp.png"><img src="static/agent_dominance_mcp.png" width="1200" height="989" alt="Dot plot of MCP-Atlas pass rate for three anchor agents. Opus 4.6 clusters around 61 to 65 percent, Sonnet 4.6 around 54 to 58, Qwen3-235B around 24 to 29, each just above its no-evolve baseline tick."></a></div>
+        <figcaption><span class="fignum">Fig. 5</span><b>MCP-Atlas post-evolution scores.</b> Blue dots are each agent's seven evolved runs; the black tick is its no-evolution baseline.</figcaption>
+      </figure>
+      <div>
+        <p>Plotting each anchor agent's score under all seven evolved harnesses next to its no-evolution baseline makes the imbalance plain. On MCP-Atlas, the spread across evolvers for a single agent is at most 5.1 pp (Qwen3-235B), against a 36.0 pp gap between the Opus&nbsp;4.6 and Qwen3-235B baselines.</p>
+        <p>Even the most lopsided pairing does not close that gap. Give the weakest anchor agent its best evolver and the strongest anchor agent its worst, and the strong agent still leads by 18.6 to 35.2 pp on every benchmark. The pattern holds on SWE and SkillsBench as well.</p>
+      </div>
+    </div>
+
+    <div class="takeaway up reveal">
+      <span class="label">Take-away</span>
+      Spend capability budget on the task-solving agent, not the evolver. <span class="math">&Delta;<sub>update</sub></span> varies by at most 3.1 pp across evolvers on any benchmark, and the post-evolution score follows the agent's base capability.
+    </div>
+  </div>
+</section>
+
+<section id="benefit" class="alt">
+  <div class="wrap">
+    <div class="h2row"><span class="no ben">04</span><h2>Finding 2: harness-benefit is non-monotonic in base capability</h2></div>
+    <p class="lead reveal">
+      Weak models have the most headroom, yet they gain the least from evolved harnesses. Mid-tier models gain the most. Strong models gain less, because they are already near the ceiling.
+    </p>
+
+    <div class="split reveal">
+      <div class="tablecol">
+        <p class="tabtitle"><span class="fignum">Table 1</span><b>Base pass rate (%) and harness-benefit <span class="math">&Delta;</span> (pp)</b> for each task-solving agent. Bold green: the largest <span class="math">&Delta;<sub>benefit</sub></span> on each benchmark.</p>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="method" rowspan="2">Agent</th>
+                <th class="spangroup sep" colspan="2">SWE</th>
+                <th class="spangroup sep" colspan="2">MCP</th>
+                <th class="spangroup sep" colspan="2">SB</th>
+              </tr>
+              <tr>
+                <th class="sep">Base</th><th>&Delta;</th>
+                <th class="sep">Base</th><th>&Delta;</th>
+                <th class="sep">Base</th><th>&Delta;</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="method">Qwen3-32B</td><td class="sep">3.6</td><td>4.4</td><td class="sep">3.6</td><td>1.0</td><td class="sep">0.0</td><td>5.8</td></tr>
+              <tr><td class="method">Qwen3-235B</td><td class="sep">20.7</td><td><b>19.3</b></td><td class="sep">25.0</td><td>4.3</td><td class="sep">4.7</td><td>1.1</td></tr>
+              <tr><td class="method">GPT-OSS-120B</td><td class="sep">26.2</td><td>15.8</td><td class="sep">28.0</td><td><b>7.0</b></td><td class="sep">0.0</td><td>7.0</td></tr>
+              <tr><td class="method">Haiku 4.5</td><td class="sep">66.0</td><td>2.4</td><td class="sep">42.4</td><td>3.6</td><td class="sep">5.8</td><td><b>15.1</b></td></tr>
+              <tr><td class="method">Sonnet 4.6</td><td class="sep">73.2</td><td>2.8</td><td class="sep">54.0</td><td>3.2</td><td class="sep">24.4</td><td>3.5</td></tr>
+              <tr><td class="method">Opus 4.6</td><td class="sep">74.2</td><td>2.6</td><td class="sep">61.0</td><td>3.6</td><td class="sep">25.6</td><td>5.8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <figure>
+        <div class="figpad"><a class="zoom" href="static/benefit_vs_base_swe.png"><img src="static/benefit_vs_base_swe.png" width="1200" height="1094" alt="Line plot of harness-benefit against base pass rate on SWE-bench Verified. It rises from Qwen3-32B at about 4 points to Qwen3-235B at 19 points, then falls through GPT-OSS-120B at 16 to Haiku, Sonnet and Opus at 2 to 3 points."></a></div>
+        <figcaption><span class="fignum">Fig. 6</span><b><span class="math">&Delta;<sub>benefit</sub></span> vs. base pass rate on SWE-bench Verified.</b> Points are joined in order of base pass rate.</figcaption>
+      </figure>
+    </div>
+
+    <p class="reveal" style="margin-top:28px">
+      On SWE the gain peaks at Qwen3-235B (19.3 pp), while the weaker Qwen3-32B gains 4.4 pp and the stronger Opus&nbsp;4.6 gains 2.6 pp. On MCP the peak moves to GPT-OSS-120B (7.0 pp), again with lower gains at both ends. At the top, small gains fit a ceiling effect: strong models already solve many tasks with the initial harness. At the bottom, the ceiling argument does not apply, which points to a different bottleneck.
+    </p>
+
+    <h3 class="reveal">Two failure modes at the weak tier</h3>
+    <div class="two-col reveal" style="margin-top:14px">
+      <div class="card ben">
+        <span class="tag">Failure mode 1</span>
+        <h4>Harness activation</h4>
+        <p>The agent never brings the relevant artifact into context, so its guidance never reaches the model. Qwen3-32B loads a skill in only a quarter of its SkillsBench trajectories.</p>
+        <p>In the <code>threejs</code> case, Qwen3-32B names the right skill but tucks the load request inside a larger action, so the environment never loads it.</p>
+      </div>
+      <div class="card ben">
+        <span class="tag">Failure mode 2</span>
+        <h4>Harness adherence</h4>
+        <p>The skill is loaded, but the agent does not follow it faithfully. An LLM judge rates whether each skill-loaded run follows the skill's guidance: Opus&nbsp;4.6 does in 76% of runs, Qwen3-32B in 14%.</p>
+        <p>In <code>pg-essay-to-audiobook</code>, Qwen3-32B treats the skill as a ready-made script and gives up after the first failure instead of trying the fallback chain it prescribes.</p>
+      </div>
+    </div>
+
+    <figure class="reveal">
+      <span class="scrollhint" aria-hidden="true">Swipe to see the full figure &rarr;</span>
+      <div class="figscroll"><a class="zoom" href="static/agent_failure_modes.png"><img src="static/agent_failure_modes.png" width="2400" height="1071" alt="Two case studies. Left, agent fails to load skill: Qwen3-32B emits a multi-key JSON with the load_skill key inside, the runner refuses it and the agent works without the recipe; Qwen3-235B emits a single-key load and follows the skill. Skill loading rates 0.251 vs 0.961. Right, skill loaded but not acted on: Qwen3-32B misreads the audiobook skill as a literal script, skips the fallback chain and gives up; GPT-OSS-120B reads it as a procedure, follows the fallback chain and passes."></a></div>
+      <figcaption>
+        <span class="fignum">Fig. 7</span><b>Two harness-benefit failure modes for Qwen3-32B on SkillsBench.</b>
+        Left (<code>threejs</code>): <em>harness activation failure</em>, where an invalid multi-key load action keeps the skill body out of context.
+        Right (<code>pg-essay-to-audiobook</code>): <em>harness adherence failure</em>, where the skill is loaded but the agent treats it as a literal script and skips the prescribed fallback chain.
+      </figcaption>
+    </figure>
+
+    <div class="split reveal" style="margin-top:40px">
+      <div class="tablecol">
+        <p class="tabtitle"><span class="fignum">Table 2</span><b>Activation, adherence and outcome on SkillsBench</b>, models sorted by base capability.</p>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th class="method">Agent</th><th class="sep">SLR</th><th>HFR</th><th>LPR</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="method">Qwen3-32B</td><td class="sep low">0.251</td><td class="low">0.142</td><td>0.023</td></tr>
+              <tr><td class="method">GPT-OSS-120B</td><td class="sep">0.446</td><td>0.442</td><td>0.040</td></tr>
+              <tr><td class="method">Haiku 4.5</td><td class="sep">0.794</td><td>0.600</td><td>0.099</td></tr>
+              <tr><td class="method">Qwen3-235B</td><td class="sep"><b>0.961</b></td><td>0.350</td><td>0.022</td></tr>
+              <tr><td class="method">Sonnet 4.6</td><td class="sep">0.959</td><td>0.730</td><td>0.145</td></tr>
+              <tr><td class="method">Opus 4.6</td><td class="sep">0.957</td><td><b>0.757</b></td><td><b>0.177</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="tabnote"><b>SLR</b>: share of trajectories that load at least one skill. <b>HFR</b>: share of skill-loaded trajectories an LLM judge rates as following the skill. <b>LPR</b>: pass rate among skill-loaded trajectories. Bold green: best per column. Red italic: lowest SLR and HFR.</p>
+      </div>
+      <div>
+        <p>Table 2 measures the two modes separately. Skill loading is near ceiling for Opus&nbsp;4.6, Sonnet&nbsp;4.6 and Qwen3-235B, but drops to 0.446 for GPT-OSS-120B and 0.251 for Qwen3-32B.</p>
+        <p>Loading the harness is not enough to benefit from it. Qwen3-235B separates the two modes most cleanly: its skill-load rate is 0.961, nearly the same as Opus&nbsp;4.6, yet its HFR is only 0.350 against 0.757. Its pass rate when a skill is loaded mirrors the gap, at 0.022 against 0.177.</p>
+      </div>
+    </div>
+
+    <h3 class="reveal">Diagnosis: adherence decays over long horizons</h3>
+    <div class="split reveal">
+      <div>
+        <p>To see whether adherence fades as a trajectory unfolds, an LLM judge scored it at three points: right after the harness is loaded, at the midpoint, and at final validation. Qwen3-32B, GPT-OSS-120B and Opus&nbsp;4.6 stand in for the weak, mid and strong tiers.</p>
+        <p>Qwen3-32B falls from 0.52 to 0.13 and GPT-OSS-120B from 0.67 to 0.43, while Opus&nbsp;4.6 holds from 0.89 to 0.80. Weak models do not simply misread the harness when it loads; they lose hold of it as the trajectory goes on, which points to long-horizon instruction following as the bottleneck.</p>
+      </div>
+      <div class="tablecol">
+        <p class="tabtitle"><span class="fignum">Table 3</span><b>Adherence score (0&ndash;1) by trajectory phase</b> for representative weak-, mid- and strong-tier agents.</p>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th class="method">Phase</th><th class="sep">Qwen3-32B<br><span style="font-weight:500;color:var(--ink-faint)">weak</span></th><th>GPT-OSS-120B<br><span style="font-weight:500;color:var(--ink-faint)">mid</span></th><th>Opus 4.6<br><span style="font-weight:500;color:var(--ink-faint)">strong</span></th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="method">Harness loaded</td><td class="sep"><u>0.52</u></td><td>0.67</td><td><b>0.89</b></td></tr>
+              <tr><td class="method">Mid turn</td><td class="sep"><u>0.22</u></td><td>0.48</td><td><b>0.79</b></td></tr>
+              <tr><td class="method">Final turn</td><td class="sep"><u>0.13</u></td><td>0.43</td><td><b>0.80</b></td></tr>
+              <tr class="drift"><td class="method">Drift (load &rarr; final)</td><td class="sep"><u>&minus;0.39</u></td><td>&minus;0.24</td><td><b>&minus;0.09</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="tabnote">Bold green: best score in each phase. Underlined red: worst.</p>
+      </div>
+    </div>
+
+    <div class="takeaway ben reveal">
+      <span class="label">Take-away</span>
+      Train agents on two axes of harness-benefit: invoking the harness reliably (a 25.1% skill-load rate for Qwen3-32B vs. &asymp;96% for strong-tier models), and following it over long horizons (Qwen3-32B adherence drifts from 0.52 to 0.13).
+    </div>
+  </div>
+</section>
+
+<section id="guidance">
+  <div class="wrap">
+    <div class="h2row"><span class="no">05</span><h2>What this means for self-evolving agents</h2></div>
+    <div class="three-col reveal" style="margin-top:0">
+      <div class="card up">
+        <span class="tag">Design guidance (i)</span>
+        <h4>Budget the agent, not the evolver</h4>
+        <p>Across evolvers, harness-updating differs by at most 3.1 pp on any benchmark, so a bigger evolver buys little. Post-evolution performance varies far more with the agent.</p>
+      </div>
+      <div class="card ben">
+        <span class="tag">Design guidance (ii)</span>
+        <h4>Train harness invocation</h4>
+        <p>Weak-tier models often never load the harness: a 25% load rate for Qwen3-32B against &asymp;96% for strong models. Loading the right artifact should be a learned skill in its own right.</p>
+      </div>
+      <div class="card ben">
+        <span class="tag">Design guidance (iii)</span>
+        <h4>Train long-horizon instruction following</h4>
+        <p>Once loaded, weak-tier adherence decays over four times more steeply than strong-tier adherence (&minus;0.39 vs. &minus;0.09). Holding on to guidance across a long trajectory is a second training target.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="wrap">
+    <div class="h2row"><span class="no">06</span><h2>BibTeX</h2></div>
+    <div class="bibwrap">
+      <button class="copy" id="copy-bib" type="button" hidden>Copy</button>
+<pre class="bibtex" id="bib">@inproceedings{lin2026harness,
+    title = "Harness Updating Is Not Harness Benefit: Disentangling Evolution Capabilities in Self-Evolving {LLM} Agents",
+    author = "Lin, Minhua  and
+      Wu, Juncheng  and
+      Wang, Zijun  and
+      Shi, Zhan  and
+      Sang, Yisi  and
+      He, Bing  and
+      Liu, Zewen  and
+      Wei, Tianxin  and
+      Wu, Zongyu  and
+      Zhang, Zhiwei  and
+      Wang, Dakuo  and
+      Zhang, Xiang  and
+      Dumoulin, Benoit  and
+      Xie, Cihang  and
+      Zhou, Yuyin  and
+      Wang, Suhang  and
+      Lu, Hanqing",
+    booktitle = "Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing",
+    year = "2026",
+    pages = "52829--52852",
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Page template adapted from the <a href="https://xiyuanyang45.github.io/WMRL/">WMRL project page</a>,
+      released under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> license.
+      This adaptation is shared under the same license.
+    </p>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+
+</body>
+</html>
