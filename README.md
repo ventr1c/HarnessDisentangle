@@ -10,7 +10,7 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory .
 
 Then open http://localhost:8765/. Opening `index.html` straight from disk also works in most browsers.
 
-Live at https://ventr1c.github.io/EvolveBench/ (GitHub Pages, served from the root of `main`).
+Live at https://ventr1c.github.io/HarnessDisentangle/ (GitHub Pages, served from the root of `main`).
 
 ## Links
 
